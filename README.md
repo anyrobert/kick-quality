@@ -84,3 +84,7 @@ npm run e2e -- --logged-in                # same checks while logged in (add --b
 Logged out, Kick's own 1080p rule makes the 1080p-after-load check unreliable, so the test reports it as `SKIP`. Set `BROWSER_BIN` to use another browser binary and `HEADED=1` to watch it run.
 
 Inter is bundled for the popup under the SIL Open Font License (`src/popup/fonts/LICENSE-Inter.txt`).
+
+## License
+
+MIT, see [LICENSE](LICENSE).
