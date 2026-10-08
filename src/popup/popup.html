@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="color-scheme" content="dark">
+  <title>Quality Lock for Kick</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main class="app" id="app" data-view="loading" data-enabled="true">
+    <header class="top">
+      <img class="logo" src="../icons/icon-48.png" alt="" width="30" height="30">
+      <div class="brand">
+        <h1>Quality Lock</h1>
+        <p>for Kick</p>
+      </div>
+      <button class="switch" id="power" type="button" role="switch" aria-checked="true" aria-label="Lock stream quality">
+        <span class="knob"></span>
+      </button>
+    </header>
+
+    <section class="now" id="now" aria-live="polite">
+      <div class="now-head">
+        <span class="live-dot" aria-hidden="true"></span>
+        <span class="now-label" id="now-label">Checking this tab</span>
+        <span class="pill" id="now-pill" hidden></span>
+      </div>
+      <div class="now-value" id="now-value"><span class="skeleton"></span></div>
+      <p class="now-note" id="now-note" hidden></p>
+      <button class="action" id="now-action" type="button" hidden></button>
+    </section>
+
+    <section class="picker">
+      <h2 id="picker-label">Lock streams to</h2>
+      <div class="options" id="options" role="radiogroup" aria-labelledby="picker-label">
+        <label class="option">
+          <input type="radio" name="quality" value="1080">
+          <span class="res">1080p</span>
+          <span class="desc">Full HD</span>
+          <span class="meta"></span>
+          <span class="radio" aria-hidden="true"></span>
+        </label>
+        <label class="option">
+          <input type="radio" name="quality" value="720">
+          <span class="res">720p</span>
+          <span class="desc">HD</span>
+          <span class="meta"></span>
+          <span class="radio" aria-hidden="true"></span>
+        </label>
+        <label class="option">
+          <input type="radio" name="quality" value="480">
+          <span class="res">480p</span>
+          <span class="desc">SD</span>
+          <span class="meta"></span>
+          <span class="radio" aria-hidden="true"></span>
+        </label>
+        <label class="option">
+          <input type="radio" name="quality" value="360">
+          <span class="res">360p</span>
+          <span class="desc">Low</span>
+          <span class="meta"></span>
+          <span class="radio" aria-hidden="true"></span>
+        </label>
+        <label class="option">
+          <input type="radio" name="quality" value="160">
+          <span class="res">160p</span>
+          <span class="desc">Data saver</span>
+          <span class="meta"></span>
+          <span class="radio" aria-hidden="true"></span>
+        </label>
+      </div>
+    </section>
+
+    <footer class="foot">
+      <span>No tracking · only runs on kick.com</span>
+      <span id="version"></span>
+    </footer>
+  </main>
+  <script src="popup.js"></script>
+</body>
+</html>

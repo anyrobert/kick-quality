@@ -1,15 +1,16 @@
 {
-  "name": "kick-quality-zen",
-  "version": "1.0.0",
+  "name": "quality-lock-for-kick",
+  "version": "1.1.0",
   "private": true,
-  "description": "Kick.com stream quality enforcer for Zen Browser and Firefox",
+  "description": "Locks Kick.com streams to the quality you choose. Chrome, Zen and Firefox.",
   "type": "module",
   "scripts": {
-    "lint": "web-ext lint --source-dir extension",
-    "build": "web-ext build --source-dir extension --artifacts-dir dist --filename kick-quality-enforcer-{version}.xpi --overwrite-dest",
-    "start": "web-ext run --source-dir extension --firefox /Applications/Zen.app/Contents/MacOS/zen --start-url https://kick.com",
-    "e2e": "node test/e2e-zen.mjs",
-    "e2e:login": "node test/e2e-zen.mjs --login"
+    "icons": "node scripts/icons.mjs",
+    "build": "node scripts/build.mjs",
+    "lint": "npm run build && web-ext lint --source-dir dist/firefox",
+    "start": "npm run build && web-ext run --source-dir dist/firefox --firefox /Applications/Zen.app/Contents/MacOS/zen --start-url https://kick.com/",
+    "e2e": "npm run build && node test/e2e.mjs",
+    "e2e:login": "node test/e2e.mjs --login"
   },
   "devDependencies": {
     "puppeteer-core": "^24.43.1",
