@@ -35,7 +35,19 @@ const PROFILE = process.env.PROFILE_DIR || path.join(os.homedir(), `.quality-loc
 const SETTLE_MS = Number(process.env.SETTLE_MS || 20000);
 const LOGIN = process.argv.includes('--login');
 const LOGGED_IN = process.argv.includes('--logged-in');
+// Headless Chrome reports itself as HeadlessChrome in its user agent and
+// client hints. Kick's Cloudflare check blocks that for logged-in sessions,
+// so present the same identity as desktop Chrome.
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36';
+const UA_META = {
+  brands: [{ brand: 'Google Chrome', version: '154' }, { brand: 'Chromium', version: '154' }, { brand: 'Not.A/Brand', version: '99' }],
+  fullVersion: '154.0.0.0',
+  platform: 'macOS',
+  platformVersion: '15.0.0',
+  architecture: 'arm',
+  model: '',
+  mobile: false,
+};
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function launch({ extensions = false, headed = !!process.env.HEADED, profile = LOGGED_IN || LOGIN } = {}) {
@@ -46,7 +58,12 @@ function launch({ extensions = false, headed = !!process.env.HEADED, profile = L
     ...(profile ? { userDataDir: PROFILE } : {}),
   };
   if (CHROME) {
-    return puppeteer.launch({ ...common, browser: 'chrome', enableExtensions: extensions, args: ['--mute-audio'] });
+    return puppeteer.launch({
+      ...common,
+      browser: 'chrome',
+      enableExtensions: extensions,
+      args: ['--mute-audio', '--disable-blink-features=AutomationControlled', `--user-agent=${UA}`],
+    });
   }
   return puppeteer.launch({
     ...common,
@@ -57,10 +74,15 @@ function launch({ extensions = false, headed = !!process.env.HEADED, profile = L
   });
 }
 
+// Cloudflare sometimes shows a short "Just a moment..." check first.
+async function gotoKick(page, url) {
+  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await page.waitForFunction(() => !document.title.includes('Just a moment'), { timeout: 60000 });
+}
+
 async function newPage(browser) {
   const page = await browser.newPage();
-  // Headless Chrome announces itself in its user agent, which Kick may block.
-  if (CHROME) await page.setUserAgent(UA);
+  if (CHROME) await page.setUserAgent(UA, UA_META);
   return page;
 }
 
@@ -89,8 +111,8 @@ async function channelsWith1080(page, wanted) {
 async function playerState(page) {
   return page.evaluate(() => ({
     url: location.pathname,
-    loggedIn: ![...document.querySelectorAll('button')].some((b) => b.textContent.trim() === 'Log In'),
-    height: document.querySelector('video')?.videoHeight ?? null,
+    loggedIn: document.cookie.split('; ').some((c) => c.startsWith('session_token=')),
+    height: (document.getElementById('video-player') ?? document.querySelector('video'))?.videoHeight ?? null,
     stream_quality: sessionStorage.getItem('stream_quality'),
   }));
 }
@@ -105,7 +127,7 @@ async function waitForHeight(page, height, timeoutMs = 15000) {
 }
 
 async function openChannel(page, slug) {
-  await page.goto(`https://kick.com/${slug}`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await gotoKick(page, `https://kick.com/${slug}`);
   await sleep(SETTLE_MS);
   return playerState(page);
 }
@@ -198,7 +220,7 @@ const results = { browser: BROWSER };
 const plain = await launch();
 try {
   const page = await newPage(plain);
-  await page.goto('https://kick.com/', { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await gotoKick(page, 'https://kick.com/');
   await sleep(3000);
   results.channels = await channelsWith1080(page, 2);
   if (results.channels.length < 2) {

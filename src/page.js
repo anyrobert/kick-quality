@@ -118,8 +118,10 @@
 
   function status() {
     const p = player();
-    const video = document.querySelector('video');
-    const onStream = !!store?.currentVideoInformations && !!video;
+    // Kick's store holds the player's own <video>; a page can have others (previews, ads).
+    const video = store?.videoElement ?? document.getElementById('video-player');
+    // Without the store (Kick changed it), any player video means a stream.
+    const onStream = store ? !!store.currentVideoInformations && !!video : !!video;
     if (!p || !onStream) {
       return { connected: !!p, onStream, videoHeight: video?.videoHeight || null };
     }

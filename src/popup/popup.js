@@ -137,16 +137,20 @@ function render(view, status) {
   }
 
   // view === 'stream'
-  const { current, target, auto, channel } = status;
+  const { current, target, auto, channel, available, videoHeight } = status;
+  // The player reports a new quality as soon as it is asked for it; the video
+  // shows it a moment later. Show what is actually on screen.
+  const onScreen =
+    (current?.height === videoHeight ? current : available?.find((q) => q.height === videoHeight)) ?? current;
   nowLabel.textContent = channel ? `Now playing · ${channel}` : 'Now playing';
   setValue(
-    current
+    onScreen
       ? [
-          [null, `${current.height}p`],
-          ['fps', `${current.framerate} fps${auto ? ' · Auto' : ''}`],
+          [null, `${onScreen.height}p`],
+          ['fps', `${onScreen.framerate} fps${auto ? ' · Auto' : ''}`],
         ]
       : [[null, 'Loading stream']],
-    { text: !current },
+    { text: !onScreen },
   );
 
   if (!settings.enabled) {
@@ -156,8 +160,8 @@ function render(view, status) {
     return;
   }
 
-  const locked = !!current && !!target && !auto && current.name === target.name;
-  if (locked) {
+  const requested = !!current && !!target && !auto && current.name === target.name;
+  if (requested && onScreen?.height === target.height) {
     app.dataset.locked = 'true';
     setPill('Locked', 'locked');
     setNote(target.height < settings.quality ? `This stream tops out at ${target.name}.` : null);
@@ -165,7 +169,7 @@ function render(view, status) {
     return;
   }
 
-  if (!current || !target || Date.now() - lastChangeAt < SWITCH_GRACE_MS) {
+  if (requested || !current || !target || Date.now() - lastChangeAt < SWITCH_GRACE_MS) {
     setPill('Switching…', 'switching');
     setNote(null);
     setAction(null);
